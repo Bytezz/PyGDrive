@@ -1,0 +1,147 @@
+#!/usr/bin/env python
+import os,sys
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
+gauth = GoogleAuth()
+gauth.LocalWebserverAuth()
+drive = GoogleDrive(gauth)
+dfiles=""
+dfilesid=""
+tmpfl=""
+tmpfli=""
+#file_list = drive.ListFile({'q': "'root' in parents and trashed=false"}).GetList()
+#for file1 in file_list:
+#	if dfiles=="":
+#		dfiles=file1["title"]
+#		dfilesid=file1["id"]
+#	else:
+#		dfiles=dfiles+"\n"+file1["title"]
+#		dfilesid=dfilesid+"\n"+file1["id"]
+def fld(pre):
+	global dfiles
+	global dfilesid
+	global file_list
+	for f in file_list:
+		if f['mimeType']=='application/vnd.google-apps.folder': # if folder
+			dfiles=dfiles+"\n"+pre+"/"+str(f['title'])+"/"#,"list":ListFolder(f['id'])})
+			dfilesid=dfilesid+"\n"+str(f['id'])
+			file_list=drive.ListFile({'q': "'%s' in parents and trashed=false" % f['id']}).GetList()
+			fld(pre+"/"+str(f['title']))
+		else:
+			dfiles=dfiles+"\n"+pre+"/"+str(f['title'])
+			dfilesid=dfilesid+"\n"+str(f['id'])
+def list():
+	global dfiles
+	global dfilesid
+	global file_list
+	dfiles=""
+	file_list = drive.ListFile({'q': "'root' in parents and trashed=false"}).GetList()
+	fld("")
+	tmp=""
+	for line in dfiles.splitlines():
+		if line!="":
+			if tmp=="":
+				tmp=line
+			else:
+				tmp=tmp+"\n"+line
+	dfiles=tmp
+	tmp=""
+	for line in dfilesid.splitlines():
+		if line!="":
+			if tmp=="":
+				tmp=line
+			else:
+				tmp=tmp+"\n"+line
+	dfilesid=tmp
+	print dfiles
+	print dfilesid
+	return dfiles
+list()
+files=os.listdir(os.getcwd())
+num=0
+pre=os.getcwd()+"/"
+for path, subdirs, files in os.walk(os.getcwd()):
+	for name in files:
+		ofile=os.path.join(path, name).replace(pre,"")
+		if "/" in ofile:
+			print "Processing: "+ofile+"               \r",
+			sys.stdout.flush()
+			dd=ofile.split("/")
+			num=0
+			f=1
+			while num<(len(dd)-1):
+				cur=dd[num]
+				if not cur in dfiles and not cur in tmpfl:
+					if f==1:
+						folder_metadata = {'title' : cur, 'mimeType' : 'application/vnd.google-apps.folder'}
+						f=0
+					else:
+						folder_metadata = {'title' : cur, 'mimeType' : 'application/vnd.google-apps.folder', "parents": [{"kind": "drive#fileLink", "id": folderid}]}
+					folder = drive.CreateFile(folder_metadata)
+					folder.Upload()
+					folderid=folder["id"]
+					num+=1
+					folderid=folder["id"]
+					tmpfl=tmpfl+cur+"\n"
+					tmpfli=tmpfli+folderid+"\n"
+				else:
+					f=0
+					num2=1
+					num3=1
+					if cur in dfiles:
+						for line in dfiles.splitlines():
+							if cur==line:
+								lnum=num2
+							num2+=1
+						for line in dfilesid.splitlines():
+							if lnum==num3:
+								folderid=line
+							num3+=1
+					else:
+						for line in tmpfl.splitlines():
+							if cur==line:
+								lnum=num2
+							num2+=1
+						for line in tmpfli.splitlines():
+							if lnum==num3:
+								folderid=line
+							num3+=1
+					f=0
+					num+=1
+			file1 = drive.CreateFile({"title": dd[num], "parents": [{"kind": "drive#fileLink", "id": folderid}]})
+			file1.SetContentFile(ofile)
+			file1.Upload()
+		else:
+			print "Processing: "+ofile+"               \r",
+			sys.stdout.flush()
+			if not ofile in dfiles:
+				ffile=open(ofile,"r")
+				cont=ffile.read()
+				ffile.close()
+				file1 = drive.CreateFile({'title': ofile})
+				file1.SetContentString(cont)
+				file1.Upload()
+			else:
+				num2=1
+				num3=1
+				for line in dfiles.splitlines():
+					if ofile==line:
+						lnum=num2
+					num2+=1
+				for line in dfilesid.splitlines():
+					if lnum==num3:
+						fileid=line
+					num3+=1
+				fileIN = drive.CreateFile({'id': fileid})
+				incont=fileIN.GetContentString()
+				ffile=open(ofile,"r")
+				cont=ffile.read()
+				ffile.close()
+				if cont!=incont:
+					file1 = drive.CreateFile({'title': ofile, "id": fileid})
+					file1.SetContentString(cont)
+					file1.Upload()
+#file_list = drive.ListFile({'q': "'root' in parents and trashed=false"}).GetList()
+#for file1 in file_list:
+#	print('title: %s, id: %s' % (file1['title'], file1['id']))
+list()
