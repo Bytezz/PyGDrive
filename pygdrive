@@ -9,6 +9,7 @@ dfiles=""
 dfilesid=""
 tmpfl=""
 tmpfli=""
+rows, columns = os.popen('stty size', 'r').read().split()
 #file_list = drive.ListFile({'q': "'root' in parents and trashed=false"}).GetList()
 #for file1 in file_list:
 #	if dfiles=="":
@@ -17,6 +18,8 @@ tmpfli=""
 #	else:
 #		dfiles=dfiles+"\n"+file1["title"]
 #		dfilesid=dfilesid+"\n"+file1["id"]
+def hr():
+	print "-"*int(columns)
 def fld(pre):
 	global dfiles
 	global dfilesid
@@ -53,66 +56,121 @@ def list():
 			else:
 				tmp=tmp+"\n"+line
 	dfilesid=tmp
-	print dfiles
-	print dfilesid
+	dfilesarray=dfiles.split("\n")
+	dfilesidarray=dfilesid.split("\n")
+	tmp=0
+	while tmp<len(dfilesarray):
+		print dfilesarray[tmp],"---",dfilesidarray[tmp]
+		tmp+=1
 	return dfiles
+if len(sys.argv)<2:
+	if help in sys.argv[1]:
+		print "pygdrive help  -  Display this"
+		print "pygdrive list  -  List all file in GDrive"
+		#print "pygdrive del   -  Delete all files in GDrive"
+		print "pygdrive       -  Upload all file in this direcoty"
+		sys.exit()
+	elif sys.argv[1]:
+		hr()
+		list()
+		sys.exit()
+	else:
+		print "'"+sys.argv[1]+"' not found\nTry:\npygdrive help"
+hr()
 list()
-files=os.listdir(os.getcwd())
+#files=os.listdir(os.getcwd())
+arfiles=[]
+files=""
+filesnum=0
+fileproc=0
 num=0
 pre=os.getcwd()+"/"
 for path, subdirs, files in os.walk(os.getcwd()):
 	for name in files:
+		arfiles.append(os.path.join(path, name).replace(pre,""))
+files='\n'.join(arfiles)
+for line in files.splitlines():
+	filesnum+=1
+hr()
+for path, subdirs, files in os.walk(os.getcwd()):
+	for name in files:
+		fileproc+=1
+		#fileproc:filesnum=X:100
+		filesperc=(fileproc*100)/filesnum
 		ofile=os.path.join(path, name).replace(pre,"")
 		if "/" in ofile:
-			print "Processing: "+ofile+"               \r",
+			strfilepr="Processing: "+ofile+" "+str(filesperc)+"%"
+			print strfilepr+(" "*(int(columns)-len(strfilepr)))+"\r",
 			sys.stdout.flush()
-			dd=ofile.split("/")
-			num=0
-			f=1
-			while num<(len(dd)-1):
-				cur=dd[num]
-				if not cur in dfiles and not cur in tmpfl:
-					if f==1:
-						folder_metadata = {'title' : cur, 'mimeType' : 'application/vnd.google-apps.folder'}
+			if not ofile in dfiles and not ofile in tmpfl:
+				dd=ofile.split("/")
+				num=0
+				f=1
+				while num<(len(dd)-1):
+					cur=dd[num]
+					if not cur in dfiles and not cur in tmpfl:
+						if f==1:
+							folder_metadata = {'title' : cur, 'mimeType' : 'application/vnd.google-apps.folder'}
+							f=0
+						else:
+							folder_metadata = {'title' : cur, 'mimeType' : 'application/vnd.google-apps.folder', "parents": [{"kind": "drive#fileLink", "id": folderid}]}
+						folder = drive.CreateFile(folder_metadata)
+						folder.Upload()
+						folderid=folder["id"]
+						num+=1
+						folderid=folder["id"]
+						tmpfl=tmpfl+cur+"\n"
+						tmpfli=tmpfli+folderid+"\n"
+					else:
 						f=0
-					else:
-						folder_metadata = {'title' : cur, 'mimeType' : 'application/vnd.google-apps.folder', "parents": [{"kind": "drive#fileLink", "id": folderid}]}
-					folder = drive.CreateFile(folder_metadata)
-					folder.Upload()
-					folderid=folder["id"]
-					num+=1
-					folderid=folder["id"]
-					tmpfl=tmpfl+cur+"\n"
-					tmpfli=tmpfli+folderid+"\n"
-				else:
-					f=0
-					num2=1
-					num3=1
-					if cur in dfiles:
-						for line in dfiles.splitlines():
-							if cur==line:
-								lnum=num2
-							num2+=1
-						for line in dfilesid.splitlines():
-							if lnum==num3:
-								folderid=line
-							num3+=1
-					else:
-						for line in tmpfl.splitlines():
-							if cur==line:
-								lnum=num2
-							num2+=1
-						for line in tmpfli.splitlines():
-							if lnum==num3:
-								folderid=line
-							num3+=1
-					f=0
-					num+=1
-			file1 = drive.CreateFile({"title": dd[num], "parents": [{"kind": "drive#fileLink", "id": folderid}]})
-			file1.SetContentFile(ofile)
-			file1.Upload()
+						num2=1
+						num3=1
+						if cur in dfiles:
+							for line in dfiles.splitlines():
+								if cur==line:
+									lnum=num2
+								num2+=1
+							for line in dfilesid.splitlines():
+								if lnum==num3:
+									folderid=line
+								num3+=1
+						else:
+							for line in tmpfl.splitlines():
+								if cur==line:
+									lnum=num2
+								num2+=1
+							for line in tmpfli.splitlines():
+								if lnum==num3:
+									folderid=line
+								num3+=1
+						f=0
+						num+=1
+				file1 = drive.CreateFile({"title": dd[num], "parents": [{"kind": "drive#fileLink", "id": folderid}]})
+				file1.SetContentFile(ofile)
+				file1.Upload()
+			else:
+				num2=1
+				num3=1
+				for line in dfiles.splitlines():
+					if "/"+ofile==line:
+						lnum=num2
+					num2+=1
+				for line in dfilesid.splitlines():
+					if lnum==num3:
+						fileid=line
+					num3+=1
+				fileIN = drive.CreateFile({'id': fileid})
+				incont=fileIN.GetContentString()
+				ffile=open(ofile,"r")
+				cont=ffile.read()
+				ffile.close()
+				if cont!=incont:
+					file1 = drive.CreateFile({'title': ofile, "id": fileid})
+					file1.SetContentString(cont)
+					file1.Upload()
 		else:
-			print "Processing: "+ofile+"               \r",
+			strfilepr="Processing: "+ofile+" "+str(filesperc)+"%"
+			print strfilepr+(" "*(int(columns)-len(strfilepr)))+"\r",
 			sys.stdout.flush()
 			if not ofile in dfiles:
 				ffile=open(ofile,"r")
@@ -125,7 +183,7 @@ for path, subdirs, files in os.walk(os.getcwd()):
 				num2=1
 				num3=1
 				for line in dfiles.splitlines():
-					if ofile==line:
+					if "/"+ofile==line:
 						lnum=num2
 					num2+=1
 				for line in dfilesid.splitlines():
@@ -145,3 +203,4 @@ for path, subdirs, files in os.walk(os.getcwd()):
 #for file1 in file_list:
 #	print('title: %s, id: %s' % (file1['title'], file1['id']))
 list()
+sys(exit)
