@@ -5,9 +5,9 @@ class bcolors:
 	FAIL = '\033[91m'
 	ENDC = '\033[0m'
 	BOLD = '\033[1m'
-spyder=open("pygdrive","r")
-code=spyder.read()
-spyder.close()
+PyGDrive=open("pygdrive","r")
+code=PyGDrive.read()
+PyGDrive.close()
 ln=1
 for line in code.splitlines():
 	if ln==11:
@@ -38,18 +38,18 @@ try:
 						if platform.system()=="Linux":
 							try:
 								print "Update..."
-								os.system("git clone https://github.com/BlackFireFox/spyder temp && cd temp/ && mv ../temp/* .. && rm -rf ../temp && make reinstall")
+								os.system("git clone https://github.com/BlackFireFox/PyGDrive temp && cd temp/ && mv ../temp/* .. && rm -rf ../temp && make reinstall")
 								print "(If reinstall not completed, type:)"
 								print "sudo make reinstall"
 								print "Completed."
 							except:
 								print "Git not installed."
 								print "Go here for download:"
-								print "https://github.com/BlackFireFox/spyder"
+								print "https://github.com/BlackFireFox/PyGDrive"
 							sys.exit()
 						else:
 							print "Go here for download:"
-							print "https://github.com/BlackFireFox/spyder"
+							print "https://github.com/BlackFireFox/PyGDrive"
 							sys.exit()
 					elif up=="n" or "no":
 						print "Don't update."
