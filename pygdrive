@@ -74,19 +74,23 @@ def list():
 		print dfilesarray[tmp],"---",dfilesidarray[tmp]
 		tmp+=1
 	return dfiles
-if len(sys.argv)<2:
-	if help in sys.argv[1]:
-		print "pygdrive help  -  Display this"
-		print "pygdrive list  -  List all file in GDrive"
-		#print "pygdrive del   -  Delete all files in GDrive"
-		print "pygdrive       -  Upload all file in this direcoty"
+if len(sys.argv)>2:
+	try:
+		if help in sys.argv[1]:
+			print "pygdrive help  -  Display this"
+			print "pygdrive list  -  List all file in GDrive"
+			#print "pygdrive del   -  Delete all files in GDrive"
+			print "pygdrive       -  Upload all file in this direcoty"
+			sys.exit()
+		elif sys.argv[1]:
+			hr()
+			list()
+			sys.exit()
+		else:
+			print "'"+sys.argv[1]+"' not found\nTry:\npygdrive help"
+	except:
+		print "Error"
 		sys.exit()
-	elif sys.argv[1]:
-		hr()
-		list()
-		sys.exit()
-	else:
-		print "'"+sys.argv[1]+"' not found\nTry:\npygdrive help"
 hr()
 list()
 #files=os.listdir(os.getcwd())
