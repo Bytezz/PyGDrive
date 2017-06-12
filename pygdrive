@@ -214,4 +214,4 @@ for path, subdirs, files in os.walk(os.getcwd()):
 #for file1 in file_list:
 #	print('title: %s, id: %s' % (file1['title'], file1['id']))
 list()
-sys(exit)
+sys.exit()
