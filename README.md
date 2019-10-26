@@ -3,7 +3,7 @@ Google Drive cli in python
 <sub>G.P.L.3</sub>
 ***
 ## How to install
-* Download:<br>`git clone https://github.com/BlackFireFox/PyGDrive`
+* Download:<br>`git clone https://github.com/Bytezz/PyGDrive`
 * Install:<br>`cd PyGDrive/`<br>`sudo make install`
 ## How to update
 * `cd PyGDrive/`
@@ -26,5 +26,5 @@ for upload all file on GDrive or run:
 
 for help.
 ***
-[DEVELOPER](https://github.com/BlackFireFox)<br>
+[DEVELOPER](https://github.com/Bytezz)<br>
 [LICENSE](LICENSE)

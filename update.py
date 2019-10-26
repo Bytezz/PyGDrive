@@ -16,7 +16,7 @@ for line in code.splitlines():
 		break
 	else:
 		ln=ln+1
-vl="https://raw.githubusercontent.com/BlackFireFox/PyGDrive/master/version.html"
+vl="https://raw.githubusercontent.com/Bytezz/PyGDrive/master/version.html"
 print "Connecting..."
 try:
 	urllib2.urlopen(vl)
@@ -38,18 +38,18 @@ try:
 						if platform.system()=="Linux":
 							try:
 								print "Update..."
-								os.system("git clone https://github.com/BlackFireFox/PyGDrive temp && cd temp/ && mv ../temp/* .. && rm -rf ../temp && make reinstall")
+								os.system("git clone https://github.com/Bytezz/PyGDrive temp && cd temp/ && mv ../temp/* .. && rm -rf ../temp && make reinstall")
 								print "(If reinstall not completed, type:)"
 								print "sudo make reinstall"
 								print "Completed."
 							except:
 								print "Git not installed."
 								print "Go here for download:"
-								print "https://github.com/BlackFireFox/PyGDrive"
+								print "https://github.com/Bytezz/PyGDrive"
 							sys.exit()
 						else:
 							print "Go here for download:"
-							print "https://github.com/BlackFireFox/PyGDrive"
+							print "https://github.com/Bytezz/PyGDrive"
 							sys.exit()
 					elif up=="n" or "no":
 						print "Don't update."
